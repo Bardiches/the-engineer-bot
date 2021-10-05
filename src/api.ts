@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Stream } from 'stream';
 // /app/getAudioFile5
 
 export interface AIRequest {
@@ -47,9 +48,9 @@ export const getAI = async (request: AIRequest, retries = 5): Promise<AIResponse
   }
 }
 
-export const getAIWav = async (filename: string, retries = 5): Promise<Buffer> => {
+export const getAIWav = async (filename: string, retries = 5): Promise<Stream> => {
   try {
-    const { data } = await axios.get(`https://cdn.15.ai/audio/${filename}`, { responseType: 'arraybuffer' });
+    const { data } = await axios.get(`https://cdn.15.ai/audio/${filename}`, { responseType: 'stream' });
 
     return data;
   } catch (error) {

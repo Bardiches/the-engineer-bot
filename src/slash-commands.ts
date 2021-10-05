@@ -3,6 +3,7 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 
 const token = process.env.TOKEN || '';
+const applicationId = process.env.APPLICATION_ID || '';
 
 const generateSlashCommands = async () => {
   const command = new SlashCommandBuilder()
@@ -21,7 +22,10 @@ const generateSlashCommands = async () => {
         .setRequired(true))
       .addStringOption(option => option
         .setName('emotion')
-        .setDescription('The emotion/inflection the message should be said in')))
+        .setDescription('The emotion/inflection the message should be said in'))
+      .addBooleanOption(option => option
+        .setName('play')
+        .setDescription('Whether or not to try to play the result in your current voice channel')))
     .addSubcommand(subCommand => subCommand
       .setName('franchises')
       .setDescription('Lists all franchises'))
@@ -37,8 +41,11 @@ const generateSlashCommands = async () => {
     .setToken(token);
 
   await rest.put(
-    Routes.applicationCommands('893304868205383711'),
-    { body: [command.toJSON()] },
+    Routes.applicationCommands(applicationId),
+    { body: [
+      command.toJSON(),
+      { type: '2', name: 'Sneed' },
+    ]},
   );
 };
 

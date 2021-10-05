@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto';
-import { Client, Intents, MessageAttachment, MessageEmbed } from 'discord.js';
+import { Client, GuildMember, Intents, MessageAttachment, MessageEmbed } from 'discord.js';
 import { getAI, getAIWav } from './api';
+import { playAudio } from './audio';
 import Characters from './characters.json';
 
 const token = process.env.TOKEN || '';
@@ -54,7 +55,7 @@ const getEmotionOrDefault = (character: Character, emotionId: string) => {
 
 const initialize = async () => {
   const client = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES],
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES],
   });
   
   client.on('ready', (client) => {
@@ -69,6 +70,7 @@ const initialize = async () => {
             const characterOption = interaction.options.getString('character', true);
             const emotionOption = interaction.options.getString('emotion');
             const textOption = interaction.options.getString('text', true);
+            const play = interaction.options.getBoolean('play', false) || false;
 
             if (characterOption && textOption) {
               const character = characterMap[toID(characterOption)];
@@ -78,20 +80,33 @@ const initialize = async () => {
 
                 await interaction.deferReply();
 
-                const response = await getAI({
-                  text: textOption,
-                  character: character.name,
-                  emotion: emotion,
-                });
-                const randomId = randomBytes(6).toString('hex');
-                const attachment = new MessageAttachment(
-                  await getAIWav(response.wavNames[0]),
-                  `${toID(character.name)}-${randomId}.wav`
-                );
-                
-                await interaction.editReply({
-                  files: [attachment],
-                });
+                try {
+                  const response = await getAI({
+                    text: textOption,
+                    character: character.name,
+                    emotion: emotion,
+                  });
+                  const randomId = randomBytes(6).toString('hex');
+                  const audioStream = await getAIWav(response.wavNames[0]);
+                  const attachment = new MessageAttachment(
+                    audioStream,
+                    `${toID(character.name)}-${randomId}.wav`
+                  );
+                  
+                  await interaction.editReply({
+                    files: [attachment],
+                  });
+
+                  if (play) {
+                    console.log('playing...');
+                    await playAudio(interaction, `https://cdn.15.ai/audio/${response.wavNames[0]}`);
+                  }
+                } catch (error) {
+                  console.log(error);
+                  await interaction.editReply({
+                    content: 'An unknown error occured. Try again.',
+                  });
+                }
               }
             }
           } else if (subcommand === 'characters') {

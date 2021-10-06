@@ -9,12 +9,11 @@ import {
 } from '@discordjs/voice';
 import { CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 
-const audioPlayer = createAudioPlayer();
-
 export const playAudio = async (
   interaction: CommandInteraction,
   audioFile: string,
 ) => {
+  const audioPlayer = createAudioPlayer();
   const audioResource = createAudioResource(audioFile, { inputType: StreamType.Arbitrary });
 
   audioPlayer.play(audioResource);

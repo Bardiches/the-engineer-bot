@@ -53,7 +53,8 @@ export const playAudio = async (
         }
       });
 
-      connection.disconnect();
+      connection.destroy();
+      audioPlayer.removeAllListeners();
     }
   }
 };

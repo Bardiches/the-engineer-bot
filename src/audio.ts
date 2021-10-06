@@ -32,17 +32,28 @@ export const playAudio = async (
 
       await entersState(connection, VoiceConnectionStatus.Ready, 30e3);
 
-      setInterval(() => {
-        connection.subscribe(audioPlayer);
-
-        audioPlayer.on('stateChange', (oldState, newState) => {
-          if (newState.status === AudioPlayerStatus.Idle) {
+      await new Promise<void>(async (resolve) => {
+        try {
+          await new Promise<void>(async (resolveInner) => {
             setInterval(() => {
-              connection.disconnect();
+              connection.subscribe(audioPlayer);
+      
+              audioPlayer.on('stateChange', (oldState, newState) => {
+                if (newState.status === AudioPlayerStatus.Idle) {
+                  setInterval(() => {
+                    resolveInner();
+                  }, 2000);
+                }
+              });
             }, 2000);
-          }
-        });
-      }, 2000);
+          });
+          resolve();
+        } catch (error) {
+          resolve();
+        }
+      });
+
+      connection.disconnect();
     }
   }
 };

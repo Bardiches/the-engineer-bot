@@ -10,6 +10,8 @@ import {
 } from '@discordjs/voice';
 import { CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 
+const sleep = async (time: number) => new Promise<void>((resolve) => setTimeout(resolve, time));
+
 export const playAudio = async (
   interaction: CommandInteraction,
   audioFile: string,
@@ -32,8 +34,10 @@ export const playAudio = async (
       });
 
       await entersState(connection, VoiceConnectionStatus.Ready, 30e3);
+      sleep(500);
       connection.subscribe(audioPlayer);
       await entersState(audioPlayer, AudioPlayerStatus.Idle, 30e3);
+      sleep(500);
 
       connection.destroy();
       audioPlayer.removeAllListeners();

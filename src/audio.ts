@@ -33,6 +33,8 @@ export const playAudio = async (
 
       await entersState(connection, VoiceConnectionStatus.Ready, 30e3);
       connection.subscribe(audioPlayer);
+      await entersState(audioPlayer, AudioPlayerStatus.Idle, 30e3);
+
       connection.destroy();
       audioPlayer.removeAllListeners();
     }
